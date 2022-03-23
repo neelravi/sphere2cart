@@ -56,7 +56,9 @@ with open(args.filename_geom) as f2:
     lines = f2.readlines()
 
     dict_atom_type = {}
-    for line in lines:
+    atom_type = []
+    for line_num, line in enumerate(lines):
+        print (line, line_num)
         # Skip the comments
         if line.startswith('&atoms'):
             nctype = int(line.split()[2])
@@ -64,18 +66,22 @@ with open(args.filename_geom) as f2:
             continue
         if line.startswith('&atom_types'):
             ntokens = len(line.split()) - 1
-            for i in range(1,ntokens+1):
-                dict_atom_type[int(line.split()[i*2])] = line.split()[i*2]
+            for i in range(0,ntokens,2):
+                dict_atom_type[int(line.split()[i+1])] = line.split()[i+2]
             continue
+
         if line.startswith('geometry'):
+            coord_block_start = line_num + 1
 
-            continue
-        # Read the number of basis and number of coeffs
-        if line.startswith('lcao'):
-            nbasis = int(line.split()[1])
-            ncoeff = int(line.split()[2])
-            continue
+    print ("nstoms ntypes and other data")
+    print (natoms, nctype, dict_atom_type)
 
-        temp = [float(i) for i in list(line.split()) ]
-        mocoeffs.append(temp)
-        iorb += 1
+    for i in range(coord_block_start, coord_block_start+natoms):
+        atom_type.append(lines[i].split()[3])
+
+    print (atom_type)
+    atom_type_symbol = []
+    for i in atom_type:
+        atom_type_symbol.append(dict_atom_type[int(i)])
+
+    print (atom_type_symbol)
