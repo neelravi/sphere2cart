@@ -85,3 +85,37 @@ with open(args.filename_geom) as f2:
         atom_type_symbol.append(dict_atom_type[int(i)])
 
     print (atom_type_symbol)
+
+
+
+### Read the bfinfo file
+with open(args.filename_bfinfo) as f3:
+    lines = f3.readlines()
+
+    for line_num, line in enumerate(lines):
+        print (line, line_num)
+        # Skip the comments
+        # Skip the comments
+        if line.startswith('qmc_bf_info'):
+            coord_block_start = line_num + 1
+        if line.startswith('end'):
+            continue
+
+    unique_atoms, indices = np.unique(atom_type_symbol, return_index=True)
+
+    print ("unique elements", unique_atoms)
+    print ("indices ", indices)
+    num_unique_atoms = len(unique_atoms)
+
+    dict_num_per_shell = {} #only the odd numbered rows of data
+    for i in range(coord_block_start, coord_block_start+2*num_unique_atoms,2):
+        dict_num_per_shell[i] = lines[i].split()
+
+    print ("dict num per shell", dict_num_per_shell)
+
+
+    dict_radial_pointers = {} #only the even numbered rows of data
+    for i in range(coord_block_start+1, coord_block_start+2*num_unique_atoms,2):
+        dict_radial_pointers[i] = lines[i].split()
+
+    print ("radial pointers", dict_radial_pointers)
