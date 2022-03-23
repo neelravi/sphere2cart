@@ -84,16 +84,11 @@ with open(args.filename_geom) as f2:
 
     print (atom_type_symbol)
 
-## utility function to get the patterns in bfinfo file
-def guess_seq_len(seq):
-    guess = 1
-    max_len = int(len(seq) / 2)
-    for x in range(2, max_len):
-        print ("all ", seq[0:x])
-        if seq[0:x] == seq[x:2*x] :
-            print ("squence ", seq[0:x])
-            return x
-    return guess
+## utility functions
+def get_key(dictionary, val):
+    for key, value in dictionary.items():
+        if val == value:
+            return key
 
 
 ### Read the bfinfo file
@@ -149,32 +144,57 @@ for vals in dict_radial_pointers.values():
     pointers = [int(i) for i in vals]
     sorted_pointers = sorted(pointers)
     unique_shells, shell_count = np.unique(sorted_pointers, return_counts=True)
-    print ("unique inds   ", shell_count)
+    print ("unique inds   ",   shell_count)
+    print ("sorted pointers   ", sorted_pointers)
 
     # Counter of how many p,d,f shells for the given atom
     _, counter = np.unique(shell_count, return_counts=True)
     print ("counter of shells per atom ", counter)
-    if len(counter) == 4:
-        local_ind_p = np.zeros((3,counter[1]),dtype=int)
-        local_ind_d = np.zeros((3,counter[2]),dtype=int)
-        local_ind_f = np.zeros((3,counter[3]),dtype=int)
-    elif len(counter) == 3:
-        local_ind_p = np.zeros((3,counter[1]),dtype=int)
-        local_ind_d = np.zeros((3,counter[2]),dtype=int)
-    elif len(counter) == 2:
-        local_ind_p = np.zeros((3,counter[1]),dtype=int)
+
+    # Get and save the first line of the new bfinfo file
+    first_line = []
+    for ind, count in enumerate(counter):
+        multiplier = get_key(dict_l_of_shells,ind)
+        first_line.extend([count for i in range(multiplier)])
+
+    first_line.extend([0 for i in range(len(first_line),20) ])
+    # first line of bfinfo file obtained here.
+
+    ### trial of something
+    i = 0
+    for group_size in shell_count:
+        print ("grouping", sorted_pointers[i:i + group_size] )
+        i += group_size
+        # print ("grouping", [sorted_pointers[i:i + group_size] for i in range(0, len(sorted_pointers), group_size)] )
 
 
-    for j in shell_count:
-        # local np array for reshuffling later
-        print ("the shell count", j)
-        l = dict_l_of_shells[j]
-        print ("the l", l)
-        print (counter0)
-        for k in order[l]:
-            bf_representation[counter0] = bfcounter
-            counter0 += 1
-            basis_per_atom_counter += 1
-        bfcounter += 1
 
-    print ("bf repre ", bf_representation)
+    # if len(counter) == 4:
+    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
+    #     local_ind_d = np.zeros((3,counter[2]),dtype=int)
+    #     local_ind_f = np.zeros((3,counter[3]),dtype=int)
+    # elif len(counter) == 3:
+    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
+    #     local_ind_d = np.zeros((3,counter[2]),dtype=int)
+    # elif len(counter) == 2:
+    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
+
+    # temp = 0
+    # for j in shell_count:
+    #     # local np array for reshuffling later
+    #     print ("the shell count", j)
+    #     l = dict_l_of_shells[j]
+    #     print ("the l", l)
+    #     print (counter0)
+    #     for k in order[l]:
+    #         bf_representation[counter0] = bfcounter
+    #         counter0 += 1
+    #         basis_per_atom_counter += 1
+    #         print ("k,j",k,j)
+    #         if l == 1:
+    #             local_ind_p[k,j] = temp
+    #             temp += 1
+    #     bfcounter += 1
+
+    # print ("bf repre ", bf_representation)
+    # print ("local p", local_ind_p)
