@@ -165,29 +165,11 @@ for vals in dict_radial_pointers.values():
     dict_shell_counter[unique_atoms[index_unique_atom]] = list(counter)
     print ("dict shell counter", dict_shell_counter)
 
-    # Get and save the first line of the new bfinfo file
-    first_line = []
-    for ind, count in enumerate(counter):
-        multiplier = get_key(dict_l_of_shells,ind)
-        first_line.extend([count for i in range(multiplier)])
 
-    first_line.extend([0 for i in range(len(first_line),20) ])
-    # first line of bfinfo file obtained here.
-
-    ### trial of something
-    i = 0
     # get the length of individual sublist and stack if length matched with earlier sublist
-    earlier_len = 1; temp_list = []; temp_list2 = []
+    temp_list2 = []
     for group_size in shell_count:
         temp_list2.append(dict_l_of_shells[group_size])
-        print ("grouping", sorted_pointers[i:i + group_size] )
-        if len(sorted_pointers[i:i + group_size]) == earlier_len:
-            temp_list.append(sorted_pointers[i:i + group_size])
-
-        earlier_len = len(sorted_pointers[i:i + group_size])
-        i += group_size
-        # print ("grouping", [sorted_pointers[i:i + group_size] for i in range(0, len(sorted_pointers), group_size)] )
-    print ("outside loop ", temp_list)
     basis_shell_ang_mom_unique[unique_atoms[index_unique_atom]] = temp_list2
 
 
