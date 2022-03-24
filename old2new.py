@@ -214,14 +214,14 @@ for atom_index in range(len(atom_type_symbol)):
             champ_ao_ordering.append(ind)
             ind += 1
 
-        local_p = np.zeros((3,shell_counter_all_atoms[atom_index][1]),dtype='U1')
+        local_p = np.zeros((3,shell_counter_all_atoms[atom_index][1]),dtype='U2')
         local_ind_p = np.zeros((3,shell_counter_all_atoms[atom_index][1]),dtype=int)
         if l == 1:
             pindex += 1; ind = champ_ao_ordering[-1] + 1
             for j in range(shell_counter_all_atoms[atom_index][1]):
                 #loop over all 3 p orbitals
                 for k in order[l]:
-                    local_p[k,j] = shells[l][k]
+                    local_p[k,j] = shells[l][k] + str(j)
                     local_ind_p[k,j] = ind
                     ind += 1
 
@@ -229,14 +229,14 @@ for atom_index in range(len(atom_type_symbol)):
                 new_shell_representation.extend(list(local_p.flatten()))
                 champ_ao_ordering.extend(list(local_ind_p.flatten()))
 
-        local_d = np.zeros((6,shell_counter_all_atoms[atom_index][2]),dtype='U2')
+        local_d = np.zeros((6,shell_counter_all_atoms[atom_index][2]),dtype='U3')
         local_ind_d = np.zeros((6,shell_counter_all_atoms[atom_index][2]),dtype=int)
         if l == 2:
             dindex += 1; ind = champ_ao_ordering[-1] + 1
             for j in range(shell_counter_all_atoms[atom_index][2]):
                 #loop over all 6 d orbitals
                 for k in order[l]:
-                    local_d[k,j] = shells[l][k]
+                    local_d[k,j] = shells[l][k] + str(j)
                     local_ind_d[k,j] = ind
                     ind += 1
 
@@ -245,14 +245,14 @@ for atom_index in range(len(atom_type_symbol)):
                 champ_ao_ordering.extend(list(local_ind_d.flatten()))
 
 
-        local_f = np.zeros((10,shell_counter_all_atoms[atom_index][3]),dtype='U3')
+        local_f = np.zeros((10,shell_counter_all_atoms[atom_index][3]),dtype='U4')
         local_ind_f = np.zeros((10,shell_counter_all_atoms[atom_index][3]),dtype=int)
         if l == 3:
             findex += 1; ind = champ_ao_ordering[-1] + 1
             for j in range(shell_counter_all_atoms[atom_index][3]):
                 #loop over all 10 f orbitals
                 for k in order[l]:
-                    local_f[k,j] = shells[l][k]
+                    local_f[k,j] = shells[l][k] + str(j)
                     local_ind_f[k,j] = ind
                     ind += 1
 
@@ -279,8 +279,8 @@ print ("basis per atom: ", basis_per_atom)
 # The next two arrays are needed for bfinfo file
 reordered_bf_array = {k: bf_representation[k] for k in champ_ao_ordering}
 reordered_bf_array_values = list(reordered_bf_array.values())
-# shell_representation_values = list(shell_representation.values())
-shell_representation_values = new_shell_representation
+shell_representation_values = list(shell_representation.values())
+distinct_shell_representation_values = new_shell_representation
 
 print( "bf representation p d f clubbed together  ", reordered_bf_array_values)
 
@@ -289,10 +289,12 @@ accumumulated_basis_per_atom = np.cumsum(basis_per_atom)
 start_index = 0
 basis_pointer_per_atom = []
 shell_reprensentation_per_atom = []
+distinct_shell_reprensentation_per_atom = []
 for i in range(len(basis_per_atom)):
     end_index = accumumulated_basis_per_atom[i]
     basis_pointer_per_atom.append(reordered_bf_array_values[start_index:end_index])
     shell_reprensentation_per_atom.append(shell_representation_values[start_index:end_index])
+    distinct_shell_reprensentation_per_atom.append(distinct_shell_representation_values[start_index:end_index])
     start_index = end_index
 
 print ("basis pointer per atom ", basis_pointer_per_atom)
@@ -415,13 +417,13 @@ for element in atom_type_symbol:
 print ("old_shell_reprensentation_per_atom ", old_shell_reprensentation_per_atom)
 
 
-print ( "new  ", shell_reprensentation_per_atom[0])
+print ( "new  ", distinct_shell_reprensentation_per_atom[0])
 print ( "old  ", old_shell_reprensentation_per_atom[0])
 
-B = np.array(shell_reprensentation_per_atom[0])
+B = np.array(distinct_shell_reprensentation_per_atom[0])
 A = np.array(old_shell_reprensentation_per_atom[0])
 
-# xsorted = np.argsort(B)
-# res = xsorted[np.searchsorted(B[xsorted], A)]
+xsorted = np.argsort(B)
+res = xsorted[np.searchsorted(B[xsorted], A)]
 
-# print(res)
+print(res)
