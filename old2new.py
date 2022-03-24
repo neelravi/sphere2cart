@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 np.set_printoptions(threshold=np.inf)
+from collections import Counter
 
 # Instantiate the parser
 parser = argparse.ArgumentParser(description='Python Converter for conversion of mixed type MOs to all-cartesian MOs for CHAMP code')
@@ -146,11 +147,9 @@ dict_l_of_shells = {1:0, 3:1, 6:2, 10:3}
 
 index_unique_atom = 0
 basis_shell_ang_mom_unique = {}
-
+dict_shell_counter = {}
 
 for vals in dict_radial_pointers.values():
-    bfcounter = 1; bf_representation = {}
-    counter0 = 0; basis_per_atom_counter = 0
     pointers = [int(i) for i in vals]
     sorted_pointers = sorted(pointers)
     unique_shells, shell_count = np.unique(sorted_pointers, return_counts=True)
@@ -163,7 +162,8 @@ for vals in dict_radial_pointers.values():
     for i in range(len(temp_counter)):
         counter[i] = temp_counter[i]
 
-    print ("counter of shells per unique atom ", counter, type(counter))
+    dict_shell_counter[unique_atoms[index_unique_atom]] = list(counter)
+    print ("dict shell counter", dict_shell_counter)
 
     # Get and save the first line of the new bfinfo file
     first_line = []
@@ -191,44 +191,150 @@ for vals in dict_radial_pointers.values():
     basis_shell_ang_mom_unique[unique_atoms[index_unique_atom]] = temp_list2
 
 
-
-
-    # if len(counter) == 4:
-    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
-    #     local_ind_d = np.zeros((3,counter[2]),dtype=int)
-    #     local_ind_f = np.zeros((3,counter[3]),dtype=int)
-    # elif len(counter) == 3:
-    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
-    #     local_ind_d = np.zeros((3,counter[2]),dtype=int)
-    # elif len(counter) == 2:
-    #     local_ind_p = np.zeros((3,counter[1]),dtype=int)
-
-    # temp = 0
-    # for j in shell_count:
-    #     # local np array for reshuffling later
-    #     print ("the shell count", j)
-    #     l = dict_l_of_shells[j]
-    #     print ("the l", l)
-    #     print (counter0)
-    #     for k in order[l]:
-    #         bf_representation[counter0] = bfcounter
-    #         counter0 += 1
-    #         basis_per_atom_counter += 1
-    #         print ("k,j",k,j)
-    #         # if l == 1:
-    #         #     local_ind_p[k,j] = temp
-    #         #     temp += 1
-    #     bfcounter += 1
-
-    # print ("bf repre ", bf_representation)
-    # print ("local p", local_ind_p)
-
-
     index_unique_atom += 1
 print ("basis shell ang mom ", basis_shell_ang_mom_unique)
 
-basis_shell_ang_mom = []
+## Come outside the unique atoms loop
+
+basis_shell_ang_mom = []; shell_counter_all_atoms = []
 for i in atom_type_symbol:
-    basis_shell_ang_mom.extend(basis_shell_ang_mom_unique[i])
+    basis_shell_ang_mom.append(basis_shell_ang_mom_unique[i])
+    shell_counter_all_atoms.append(dict_shell_counter[i])
 
 print ("full list ang mom ", basis_shell_ang_mom)
+print ("full shell counter list ", shell_counter_all_atoms)
+
+# This part is for reshuffling to make the AO basis in the CHAMP's new own ordering
+index_dict = {}; shell_representation = {}; bf_representation = {}
+new_shell_representation = []
+counter = 0; basis_per_atom = []
+ind = 0; champ_ao_ordering = []
+for atom_index in range(len(atom_type_symbol)):
+    bfcounter = 1; basis_per_atom_counter = 0
+    pindex = 0; dindex = 0; findex = 0
+    for l in basis_shell_ang_mom[atom_index]:
+        # run a small loop to reshuffle the shell ordering
+        if l == 0:
+            new_shell_representation.append(shells[l][0])
+            champ_ao_ordering.append(ind)
+            ind += 1
+
+        local_p = np.zeros((3,shell_counter_all_atoms[atom_index][1]),dtype='U1')
+        local_ind_p = np.zeros((3,shell_counter_all_atoms[atom_index][1]),dtype=int)
+        if l == 1:
+            pindex += 1; ind = champ_ao_ordering[-1] + 1
+            for j in range(shell_counter_all_atoms[atom_index][1]):
+                #loop over all 3 p orbitals
+                for k in order[l]:
+                    local_p[k,j] = shells[l][k]
+                    local_ind_p[k,j] = ind
+                    ind += 1
+
+            if pindex == shell_counter_all_atoms[atom_index][1]:
+                new_shell_representation.extend(list(local_p.flatten()))
+                champ_ao_ordering.extend(list(local_ind_p.flatten()))
+
+        local_d = np.zeros((6,shell_counter_all_atoms[atom_index][2]),dtype='U2')
+        local_ind_d = np.zeros((6,shell_counter_all_atoms[atom_index][2]),dtype=int)
+        if l == 2:
+            dindex += 1; ind = champ_ao_ordering[-1] + 1
+            for j in range(shell_counter_all_atoms[atom_index][2]):
+                #loop over all 6 d orbitals
+                for k in order[l]:
+                    local_d[k,j] = shells[l][k]
+                    local_ind_d[k,j] = ind
+                    ind += 1
+
+            if dindex == shell_counter_all_atoms[atom_index][2]:
+                new_shell_representation.extend(list(local_d.flatten()))
+                champ_ao_ordering.extend(list(local_ind_d.flatten()))
+
+
+        local_f = np.zeros((10,shell_counter_all_atoms[atom_index][3]),dtype='U3')
+        local_ind_f = np.zeros((10,shell_counter_all_atoms[atom_index][3]),dtype=int)
+        if l == 3:
+            findex += 1; ind = champ_ao_ordering[-1] + 1
+            for j in range(shell_counter_all_atoms[atom_index][3]):
+                #loop over all 10 f orbitals
+                for k in order[l]:
+                    local_f[k,j] = shells[l][k]
+                    local_ind_f[k,j] = ind
+                    ind += 1
+
+            if findex == shell_counter_all_atoms[atom_index][3]:
+                new_shell_representation.extend(list(local_f.flatten()))
+                champ_ao_ordering.extend(list(local_ind_f.flatten()))
+
+        # Get number of AO basis per atom
+        for k in order[l]:
+            shell_representation[counter] = shells[l][k]
+            index_dict[counter] =  counter
+            bf_representation[counter] = bfcounter
+            counter += 1
+            basis_per_atom_counter += 1
+        bfcounter += 1
+    basis_per_atom.append(basis_per_atom_counter)
+
+print ("champ ao ordering: ", champ_ao_ordering)
+print ("new_shell_representation: ", new_shell_representation)
+print ("old_shell_representation: ", shell_representation.values())
+print ("basis per atom: ", basis_per_atom)
+print ("BF representation: ", bf_representation.values())
+
+
+# ## Reorder orbitals according to the ordering of the CHAMP ordering
+# reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
+
+# The next two arrays are needed for bfinfo file
+reordered_bf_array = {k: bf_representation[k] for k in champ_ao_ordering}
+reordered_bf_array_values = list(reordered_bf_array.values())
+shell_representation_values = list(shell_representation.values())
+
+print( "bf   ", reordered_bf_array_values)
+
+accumumulated_basis_per_atom = np.cumsum(basis_per_atom)
+
+start_index = 0
+basis_pointer_per_atom = []
+shell_reprensentation_per_atom = []
+for i in range(len(basis_per_atom)):
+    end_index = accumumulated_basis_per_atom[i]
+    basis_pointer_per_atom.append(reordered_bf_array_values[start_index:end_index])
+    shell_reprensentation_per_atom.append(shell_representation_values[start_index:end_index])
+    start_index = end_index
+
+print ("basis pointer per atom ", basis_pointer_per_atom)
+print ("shell prepresentation per atom ", shell_reprensentation_per_atom)
+
+
+## Write the new bfinfo file begins here ----------------
+new_filename_bfinfo = "champ_v2_new_cartesian_" + args.filename_bfinfo
+if new_filename_bfinfo is not None:
+    if isinstance(new_filename_bfinfo, str):
+        ## Write down a symmetry file in the new champ v2.0 format
+        with open(new_filename_bfinfo, 'w') as file:
+
+            # qmc bfinfo line printed below
+            file.write("qmc_bf_info 1 \n")
+
+            # pointers to the basis functions
+            for i in indices:
+                count_shells_per_atom = list(Counter(shell_reprensentation_per_atom[i]).values())
+                # Write the number of types of shells for each unique atom
+                for num in count_shells_per_atom:
+                    file.write(f"{num} ")
+                # Write down zeros for shells that are not present. Total shells supported are S(1) + P(3) + D(6) + F(10) = 20
+                for rem in range(len(count_shells_per_atom), 20):
+                    file.write(f"0 ")
+                file.write(f"\n")
+
+                # Write the pointers to the basis functions
+                for pointer in basis_pointer_per_atom[i]:
+                    file.write(f"{pointer} ")
+                file.write(f"\n")
+            file.write("end\n")
+        file.close()
+
+    else:
+        raise ValueError
+# all the bfinfo file information written to the file
