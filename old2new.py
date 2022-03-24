@@ -82,7 +82,7 @@ with open(args.filename_geom) as f2:
     for i in atom_type:
         atom_type_symbol.append(dict_atom_type[int(i)])
 
-    print (atom_type_symbol)
+    print ("atom symbols ", atom_type_symbol)
 
 ## utility functions
 def get_key(dictionary, val):
@@ -105,9 +105,10 @@ with open(args.filename_bfinfo) as f3:
             continue
 
     unique_atoms, indices = np.unique(atom_type_symbol, return_index=True)
-
+    _, count_each_type_atoms = np.unique(atom_type_symbol, return_counts=True)
     print ("unique elements", unique_atoms)
     print ("indices ", indices)
+    print ("count each atom type", count_each_type_atoms)
     num_unique_atoms = len(unique_atoms)
 
     dict_num_per_shell = {} #only the odd numbered rows of data
@@ -134,8 +135,17 @@ order = [[0],
          [0, 1, 2, 3, 4, 5],
          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
 
+shells = {}
+shells[0] = ['S']
+shells[1] = ['X','Y','Z']
+shells[2] = ['XX','XY','XZ','YY','YZ','ZZ']
+shells[3] = ['XXX','XXY','XXZ','XYY','XYZ','XZZ','YYY','YYZ','YZZ','ZZZ']
+
 dict_l_of_shells = {1:0, 3:1, 6:2, 10:3}
 
+
+index_unique_atom = 0
+basis_shell_ang_mom_unique = {}
 
 
 for vals in dict_radial_pointers.values():
@@ -147,9 +157,13 @@ for vals in dict_radial_pointers.values():
     print ("unique inds   ",   shell_count)
     print ("sorted pointers   ", sorted_pointers)
 
-    # Counter of how many p,d,f shells for the given atom
-    _, counter = np.unique(shell_count, return_counts=True)
-    print ("counter of shells per atom ", counter)
+    # Counter of how many s,p,d,f shells for the given atom
+    counter = np.zeros(4, dtype=int)
+    _, temp_counter = np.unique(shell_count, return_counts=True)
+    for i in range(len(temp_counter)):
+        counter[i] = temp_counter[i]
+
+    print ("counter of shells per unique atom ", counter, type(counter))
 
     # Get and save the first line of the new bfinfo file
     first_line = []
@@ -162,10 +176,20 @@ for vals in dict_radial_pointers.values():
 
     ### trial of something
     i = 0
+    # get the length of individual sublist and stack if length matched with earlier sublist
+    earlier_len = 1; temp_list = []; temp_list2 = []
     for group_size in shell_count:
+        temp_list2.append(dict_l_of_shells[group_size])
         print ("grouping", sorted_pointers[i:i + group_size] )
+        if len(sorted_pointers[i:i + group_size]) == earlier_len:
+            temp_list.append(sorted_pointers[i:i + group_size])
+
+        earlier_len = len(sorted_pointers[i:i + group_size])
         i += group_size
         # print ("grouping", [sorted_pointers[i:i + group_size] for i in range(0, len(sorted_pointers), group_size)] )
+    print ("outside loop ", temp_list)
+    basis_shell_ang_mom_unique[unique_atoms[index_unique_atom]] = temp_list2
+
 
 
 
@@ -191,10 +215,20 @@ for vals in dict_radial_pointers.values():
     #         counter0 += 1
     #         basis_per_atom_counter += 1
     #         print ("k,j",k,j)
-    #         if l == 1:
-    #             local_ind_p[k,j] = temp
-    #             temp += 1
+    #         # if l == 1:
+    #         #     local_ind_p[k,j] = temp
+    #         #     temp += 1
     #     bfcounter += 1
 
     # print ("bf repre ", bf_representation)
     # print ("local p", local_ind_p)
+
+
+    index_unique_atom += 1
+print ("basis shell ang mom ", basis_shell_ang_mom_unique)
+
+basis_shell_ang_mom = []
+for i in atom_type_symbol:
+    basis_shell_ang_mom.extend(basis_shell_ang_mom_unique[i])
+
+print ("full list ang mom ", basis_shell_ang_mom)
