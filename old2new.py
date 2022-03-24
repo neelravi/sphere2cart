@@ -140,11 +140,20 @@ order = [[0],
          [0, 1, 2, 3, 4, 5],
          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
 
+## NEW champ shell ordering
 shells = {}
 shells[0] = ['S']
 shells[1] = ['X','Y','Z']
 shells[2] = ['XX','XY','XZ','YY','YZ','ZZ']
 shells[3] = ['XXX','XXY','XXZ','XYY','XYZ','XZZ','YYY','YYZ','YZZ','ZZZ']
+
+## OLD champ shell ordering
+old_shells = {}
+old_shells[0] = ['S']
+old_shells[1] = ['X','Y','Z']
+old_shells[2] = ['XX','YY','ZZ','XY','XZ','YZ']
+old_shells[3] = ['XXX','YYY','ZZZ','XXY','XXZ','YYX','YYZ','ZZX','ZZY','XYZ']
+
 
 dict_l_of_shells = {1:0, 3:1, 6:2, 10:3}
 
@@ -356,3 +365,57 @@ if new_filename_geom is not None:
 # reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
 
 # print ("mocoeffs read as are ", mocoeffs)
+
+# A = np.array(['a', 'b', 'c', 'd'])
+# B = np.array(['d', 'b', 'a', 'c'])
+
+print ( "CHAMP AO order ", champ_ao_ordering[0:14])
+print ( "SHELL AO order ", new_shell_representation[0:14])
+print (" ")
+print (" ")
+print ("reconstruting the old shell representation first atom")
+old_shell_reprensentation_per_atom = []
+for element in atom_type_symbol:
+    temp_old_shell = []
+    for ind, num in enumerate(dict_shell_counter[element]):
+        # S with XX of D
+        if ind == 0:
+            for j in range(num):
+                temp_old_shell.append(old_shells[ind][0])
+
+            for _ in range(dict_shell_counter[element][2]):
+                temp_old_shell.append(old_shells[2][0])
+
+        # P
+        if ind == 1:
+            temp = np.zeros((3,num),dtype='U1')
+            for j in range(num):
+                for k in order[1]:
+                    temp[k,j] = old_shells[1][k]
+
+            temp_old_shell.extend(list(temp.flatten()))
+
+        # D without XX
+        if ind == 2:
+            temp = np.zeros((6,num),dtype='U2')
+            for j in range(num):
+                for k in order[2][1:]:  #exclude XX
+                    temp[k,j] = old_shells[2][k]
+
+            temp_old_shell.extend(list(temp.flatten()))
+
+        # F
+        if ind == 3:
+            temp = np.zeros((10,num),dtype='U3')
+            for j in range(num):
+                for k in order[3]:
+                    temp[k,j] = old_shells[3][k]
+
+            temp_old_shell.extend(list(temp.flatten()))
+
+    temp_old_shell = list(filter(None, temp_old_shell))
+    old_shell_reprensentation_per_atom.append(temp_old_shell)
+
+print ("old_shell_reprensentation_per_atom ", old_shell_reprensentation_per_atom)
+
+
