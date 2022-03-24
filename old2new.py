@@ -407,7 +407,7 @@ for element in atom_type_symbol:
             temp = np.zeros((10,num),dtype='U4')
             for j in range(num):
                 for k in order[3]:
-                    temp[k,j] = old_shells[3][k]
+                    temp[k,j] = old_shells[3][k] + str(j)
 
             temp_old_shell.extend(list(temp.flatten()))
 
@@ -420,10 +420,16 @@ print ("old_shell_reprensentation_per_atom ", old_shell_reprensentation_per_atom
 print ( "new  ", distinct_shell_reprensentation_per_atom[0])
 print ( "old  ", old_shell_reprensentation_per_atom[0])
 
-B = np.array(distinct_shell_reprensentation_per_atom[0])
-A = np.array(old_shell_reprensentation_per_atom[0])
 
-xsorted = np.argsort(B)
-res = xsorted[np.searchsorted(B[xsorted], A)]
+summ = 0
+for index, element in enumerate(atom_type_symbol):
 
-print(res)
+    B = np.array(distinct_shell_reprensentation_per_atom[index])
+    A = np.array(old_shell_reprensentation_per_atom[index])
+
+    xsorted = np.argsort(B)
+    res = xsorted[np.searchsorted(B[xsorted], A)]
+
+    # print(res)
+    print ([a + summ for a in res])
+    summ = summ + basis_per_atom[index]
