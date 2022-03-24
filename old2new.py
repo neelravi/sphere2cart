@@ -48,7 +48,7 @@ with open(args.filename_lcao) as f1:
         mocoeffs.append(temp)
         iorb += 1
 
-# print (mocoeffs)
+
 
 
 ### Read the geometry file
@@ -75,7 +75,11 @@ with open(args.filename_geom) as f2:
     print ("nstoms ntypes and other data")
     print (natoms, nctype, dict_atom_type)
 
+    nucleus_coord = np.zeros((natoms,3),dtype=float)
     for i in range(coord_block_start, coord_block_start+natoms):
+        nucleus_coord[i-coord_block_start][0] = lines[i].split()[0]
+        nucleus_coord[i-coord_block_start][1] = lines[i].split()[1]
+        nucleus_coord[i-coord_block_start][2] = lines[i].split()[2]
         atom_type.append(lines[i].split()[3])
 
     print (atom_type)
@@ -97,9 +101,9 @@ with open(args.filename_bfinfo) as f3:
     lines = f3.readlines()
 
     for line_num, line in enumerate(lines):
-        print (line, line_num)
         # Skip the comments
-        # Skip the comments
+        if line.startswith('#'):
+            continue
         if line.startswith('qmc_bf_info'):
             coord_block_start = line_num + 1
         if line.startswith('end'):
@@ -261,18 +265,14 @@ print ("champ ao ordering: ", champ_ao_ordering)
 print ("new_shell_representation: ", new_shell_representation)
 print ("old_shell_representation: ", shell_representation.values())
 print ("basis per atom: ", basis_per_atom)
-print ("BF representation: ", bf_representation.values())
 
-
-# ## Reorder orbitals according to the ordering of the CHAMP ordering
-# reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
 
 # The next two arrays are needed for bfinfo file
 reordered_bf_array = {k: bf_representation[k] for k in champ_ao_ordering}
 reordered_bf_array_values = list(reordered_bf_array.values())
 shell_representation_values = list(shell_representation.values())
 
-print( "bf   ", reordered_bf_array_values)
+print( "bf representation p d f clubbed together  ", reordered_bf_array_values)
 
 accumumulated_basis_per_atom = np.cumsum(basis_per_atom)
 
@@ -320,3 +320,39 @@ if new_filename_bfinfo is not None:
     else:
         raise ValueError
 # all the bfinfo file information written to the file
+
+## Write the new geometry file begins here ----------------
+new_filename_geom = "champ_v2_new_cartesian_" + args.filename_geom + ".xyz"
+if new_filename_geom is not None:
+    if isinstance(new_filename_geom, str):
+        ## Write down a symmetry file in the new champ v2.0 format
+        with open(new_filename_geom, 'w') as file:
+
+            file.write("{} \n".format(natoms))
+            # header line printed below
+            file.write("# Converted from the old .geometry file to CHAMP v2 .xyz file \n")
+
+            for element in range(natoms):
+                file.write("{:5s} {: 0.6f} {: 0.6f} {: 0.6f} \n".format(atom_type_symbol[element], nucleus_coord[element][0], nucleus_coord[element][1], nucleus_coord[element][2]))
+
+            file.write("\n")
+        file.close()
+    else:
+        raise ValueError
+# all the geometry file information written to the file
+
+
+
+
+### Operations on MO coefficients done here
+
+## CHAMP old AO ordering (where d is moved to s orbital)
+# ao_order_old= ['S','XX','X','Y','Z','YY','ZZ','XY','XZ','YZ','XXX','YYY','ZZZ','XXY','XXZ','YYX','YYZ','ZZX','ZZY','XYZ']
+## Cartesian Ordering CHAMP
+# ao_order_new = ['S',[all 'X'],[all 'Y'],[all 'Z'],'XX','XY','XZ','YY','YZ','ZZ','XXX','XXY','XXZ','XYY','XYZ','XZZ','YYY','YYZ','YZZ','ZZZ']
+
+
+# ## Reorder orbitals according to the ordering of the CHAMP ordering
+# reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
+
+# print ("mocoeffs read as are ", mocoeffs)
