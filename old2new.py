@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 np.set_printoptions(threshold=np.inf)
 from collections import Counter
+from itertools import count as icount
 
 # Instantiate the parser
 parser = argparse.ArgumentParser(description='Python Converter for conversion of mixed type MOs to all-cartesian MOs for CHAMP code')
@@ -414,22 +415,31 @@ for element in atom_type_symbol:
     temp_old_shell = list(filter(None, temp_old_shell))
     old_shell_reprensentation_per_atom.append(temp_old_shell)
 
-print ("old_shell_reprensentation_per_atom ", old_shell_reprensentation_per_atom)
 
-
-print ( "new  ", distinct_shell_reprensentation_per_atom[0])
-print ( "old  ", old_shell_reprensentation_per_atom[0])
-
-
-summ = 0
+summ = 0; final_list_indices = []
 for index, element in enumerate(atom_type_symbol):
-
+    temporary = []
     B = np.array(distinct_shell_reprensentation_per_atom[index])
     A = np.array(old_shell_reprensentation_per_atom[index])
 
-    xsorted = np.argsort(B)
-    res = xsorted[np.searchsorted(B[xsorted], A)]
+    #take care of repeated number corresponding to S shells
+    c = Counter(B)
+    iters = {k: icount(1) for k, v in c.items() if v > 1}
+    indexed_B = [x+str(next(iters[x])) if x in iters else x for x in B]
+    indexed_B =np.array(indexed_B)
 
-    # print(res)
-    print ([a + summ for a in res])
+
+    c = Counter(A)
+    iters = {k: icount(1) for k, v in c.items() if v > 1}
+    indexed_A = [x+str(next(iters[x])) if x in iters else x for x in A]
+    indexed_A =np.array(indexed_A)
+
+    xsorted = np.argsort(indexed_B)
+    res = xsorted[np.searchsorted(indexed_B[xsorted], indexed_A)]
+
+    temporary = [str(a + summ) for a in res]
+    final_list_indices.append(temporary)
+
     summ = summ + basis_per_atom[index]
+
+print ("list of indices final ", final_list_indices)
