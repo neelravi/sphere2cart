@@ -41,8 +41,8 @@ with open(args.filename_lcao) as f1:
             continue
         # Read the number of basis and number of coeffs
         if line.startswith('lcao'):
-            nbasis = int(line.split()[1])
-            ncoeff = int(line.split()[2])
+            ncoeff = int(line.split()[1])
+            nbasis = int(line.split()[2])
             continue
 
         temp = [float(i) for i in list(line.split()) ]
@@ -368,7 +368,6 @@ if new_filename_geom is not None:
 # ## Reorder orbitals according to the ordering of the CHAMP ordering
 # reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
 
-# print ("mocoeffs read as are ", mocoeffs)
 
 print (" ")
 print (" ")
@@ -416,11 +415,17 @@ for element in atom_type_symbol:
     old_shell_reprensentation_per_atom.append(temp_old_shell)
 
 
+
+# Create a copy of mocoeffs; only the d coeffs will change; rest will be shuffled
+transformed_mocoeffs = np.asarray(mocoeffs)
+
 summ = 0; final_list_indices = []
 for index, element in enumerate(atom_type_symbol):
     temporary = []
     B = np.array(distinct_shell_reprensentation_per_atom[index])
     A = np.array(old_shell_reprensentation_per_atom[index])
+
+    print ("old shell ", A)
 
     #take care of repeated number corresponding to S shells
     c = Counter(B)
@@ -439,7 +444,37 @@ for index, element in enumerate(atom_type_symbol):
 
     temporary = [str(a + summ) for a in res]
     final_list_indices.append(temporary)
-
     summ = summ + basis_per_atom[index]
 
+
+    ## Do the molecular coefficient transformation here.
+    # Select the XX, YY, ZZ coefficients from the old file for each atom
+    # and then apply the following transformation::
+    CS = np.sqrt(5.0)
+    CD = 1.0/np.sqrt(3.0)
+    # a=oldcoeff('XX')
+    # b=oldcoeff('YY')
+    # c=oldcoeff('ZZ')
+    # newcoeff('XX') = $a/$lcao_cs - $b/2.0 + $c / (2.0*$lcao_cd);
+    # newcoeff('YY') = $a/$lcao_cs - $b/2.0 - $c / (2.0*$lcao_cd);
+    # newcoeff('ZZ') = $a/$lcao_cs + $b;
+
+    # make sure that you loop over all the d coeffs
+    for num_d in range(dict_shell_counter[element][2]):
+        index_xx = np.where( A == 'XX' + str(num_d))[0][0]
+        index_yy = np.where( A == 'YY' + str(num_d))[0][0]
+        index_zz = np.where( A == 'ZZ' + str(num_d))[0][0]
+        for iorb in range(ncoeff):
+            a = mocoeffs[iorb][index_xx]
+            b = mocoeffs[iorb][index_yy]
+            c = mocoeffs[iorb][index_zz]
+            transformed_mocoeffs[iorb][index_xx] = a/CS - b/2.0 + c/(2.0*CD)
+            transformed_mocoeffs[iorb][index_yy] = a/CS - b/2.0 - c/(2.0*CD)
+            transformed_mocoeffs[iorb][index_yy] = a/CS + b
+
+
+
+
+print ("mocoeffs read as are ", mocoeffs[0], type(mocoeffs))
 print ("list of indices final ", final_list_indices)
+print ("transformed coeffs   ", transformed_mocoeffs[0], type(transformed_mocoeffs))
