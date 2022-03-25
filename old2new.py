@@ -437,6 +437,9 @@ for index, element in enumerate(atom_type_symbol):
     indexed_A = [x+str(next(iters[x])) if x in iters else x for x in A]
     indexed_A =np.array(indexed_A)
 
+    print ("indexed A ", indexed_A)
+    print ("indexed B ", indexed_B)
+
     xsorted = np.argsort(indexed_B)
     res = xsorted[np.searchsorted(indexed_B[xsorted], indexed_A)]
 
@@ -454,8 +457,8 @@ for index, element in enumerate(atom_type_symbol):
     # b=oldcoeff('YY')
     # c=oldcoeff('ZZ')
     # newcoeff('XX') = a/CS - b/2.0 + c / (2.0*CD);
-    # newcoeff('YY') = a/CS + b;
-    # newcoeff('ZZ') = a/CS - b/2.0 - c / (2.0*CD);
+    # newcoeff('YY') = a/CS - b/2.0 - c / (2.0*CD);
+    # newcoeff('ZZ') = a/CS + b;
 
     # make sure that you loop over all the d coeffs
     for num_d in range(dict_shell_counter[element][2]):
@@ -474,13 +477,31 @@ for index, element in enumerate(atom_type_symbol):
 
 
 flat_list = [item for sublist in old_shell_reprensentation_per_atom for item in sublist]
-print ("old_shell_reprensentation_per_atom", flat_list)
-
-print ("mocoeffs read as are ", mocoeffs[0], type(mocoeffs))
-print ("list of indices final ", final_list_indices)
+#Convert to numpy array
 final_list_indices = np.asarray(final_list_indices)
+#Convert to numpy int array
+final_list_indices = final_list_indices.astype(int)
 
-print ("final output coeffs ")
-for index in range(len(transformed_mocoeffs[0])):
-    print('{}{}'.format(flat_list[index].ljust(10), transformed_mocoeffs[0][index]))
+## Rearrange the transofrmed mocoeffs array with index array from final_list_indices
+argindex = final_list_indices.argsort()
+for iorb in range(ncoeff):
+    transformed_mocoeffs[iorb] = transformed_mocoeffs[iorb][argindex]
 
+# write the transformed molecular coefficients to the new .lcao file
+new_filename_orbitals = "champ_v2_new_cartesian_" + args.filename_lcao + '_orbitals.lcao'
+if new_filename_orbitals is not None:
+    if isinstance(new_filename_orbitals, str):
+        ## Write down an orbitals file in the new champ v2.0 format
+        with open(new_filename_orbitals, 'w') as file:
+
+            # header line printed below
+            file.write("# File created using the old champ spherical to cartesian converter \n")
+            file.write("lcao " + str(ncoeff) + " " + str(nbasis) + " 1 " + "\n" )
+            np.savetxt(file, transformed_mocoeffs, fmt='%.8f')
+            file.write("end\n")
+        file.close()
+    else:
+        raise ValueError
+# all the lcao file information written to the file
+
+# The end
