@@ -481,7 +481,7 @@ flat_list = [item for sublist in old_shell_reprensentation_per_atom for item in 
 final_list_indices = np.asarray(final_list_indices)
 #Convert to numpy int array
 final_list_indices = final_list_indices.astype(int)
-
+print ("list of indices final ", final_list_indices)
 ## Rearrange the transofrmed mocoeffs array with index array from final_list_indices
 argindex = final_list_indices.argsort()
 for iorb in range(ncoeff):
@@ -505,3 +505,19 @@ if new_filename_orbitals is not None:
 # all the lcao file information written to the file
 
 # The end
+
+# debug
+print (old_shell_reprensentation_per_atom[1][0:14])
+print ("tranformed ")
+print (transformed_mocoeffs[0][14:28])
+print ("reference ")
+# print ("[0]   0.47782000 -0.11778100  0.00813900 -0.01455200  0.07949400  0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
+print ("[1]   0.47782000 -0.11778100 -0.00813900  0.01455200 -0.07949400 -0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
+# print ("[2]   0.30742600 -0.12040800  0.11043800 -0.04292200 -0.03640200  0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
+# print ("[3]   0.30742600 -0.12040800 -0.11043800  0.04292200  0.03640200 -0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
+# print ("[4]   0.06614600  0.00353700  0.00362200 -0.00935700  0.00000000")
+# print ("[5]   0.06614600  0.00353700 -0.00362200  0.00935700  0.00000000")
+# print ("[6]   0.09774900  0.00206300 -0.00016200  0.01276300  0.00000000")
+# print ("[7]   0.09774900  0.00206300  0.00016200 -0.01276300  0.00000000")
+# print ("[8]   0.05603700  0.00745100  0.00848200  0.00205200  0.00000000")
+# print ("[9]   0.05603700  0.00745100 -0.00848200 -0.00205200  0.00000000")
