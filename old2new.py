@@ -425,8 +425,6 @@ for index, element in enumerate(atom_type_symbol):
     B = np.array(distinct_shell_reprensentation_per_atom[index])
     A = np.array(old_shell_reprensentation_per_atom[index])
 
-    print ("old shell ", A)
-
     #take care of repeated number corresponding to S shells
     c = Counter(B)
     iters = {k: icount(1) for k, v in c.items() if v > 1}
@@ -443,7 +441,7 @@ for index, element in enumerate(atom_type_symbol):
     res = xsorted[np.searchsorted(indexed_B[xsorted], indexed_A)]
 
     temporary = [str(a + summ) for a in res]
-    final_list_indices.append(temporary)
+    final_list_indices.extend(temporary)
     summ = summ + basis_per_atom[index]
 
 
@@ -455,9 +453,9 @@ for index, element in enumerate(atom_type_symbol):
     # a=oldcoeff('XX')
     # b=oldcoeff('YY')
     # c=oldcoeff('ZZ')
-    # newcoeff('XX') = $a/$lcao_cs - $b/2.0 + $c / (2.0*$lcao_cd);
-    # newcoeff('YY') = $a/$lcao_cs - $b/2.0 - $c / (2.0*$lcao_cd);
-    # newcoeff('ZZ') = $a/$lcao_cs + $b;
+    # newcoeff('XX') = a/CS - b/2.0 + c / (2.0*CD);
+    # newcoeff('YY') = a/CS + b;
+    # newcoeff('ZZ') = a/CS - b/2.0 - c / (2.0*CD);
 
     # make sure that you loop over all the d coeffs
     for num_d in range(dict_shell_counter[element][2]):
@@ -470,11 +468,19 @@ for index, element in enumerate(atom_type_symbol):
             c = mocoeffs[iorb][index_zz]
             transformed_mocoeffs[iorb][index_xx] = a/CS - b/2.0 + c/(2.0*CD)
             transformed_mocoeffs[iorb][index_yy] = a/CS - b/2.0 - c/(2.0*CD)
-            transformed_mocoeffs[iorb][index_yy] = a/CS + b
+            transformed_mocoeffs[iorb][index_zz] = a/CS + b
 
 
 
+
+flat_list = [item for sublist in old_shell_reprensentation_per_atom for item in sublist]
+print ("old_shell_reprensentation_per_atom", flat_list)
 
 print ("mocoeffs read as are ", mocoeffs[0], type(mocoeffs))
 print ("list of indices final ", final_list_indices)
-print ("transformed coeffs   ", transformed_mocoeffs[0], type(transformed_mocoeffs))
+final_list_indices = np.asarray(final_list_indices)
+
+print ("final output coeffs ")
+for index in range(len(transformed_mocoeffs[0])):
+    print('{}{}'.format(flat_list[index].ljust(10), transformed_mocoeffs[0][index]))
+
