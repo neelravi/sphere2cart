@@ -8,15 +8,15 @@ from itertools import count as icount
 parser = argparse.ArgumentParser(description='Python Converter for conversion of mixed type MOs to all-cartesian MOs for CHAMP code')
 
 # Required positional argument
-parser.add_argument("--lcao", "-s", "--orb", dest='filename_lcao', type=str,
+parser.add_argument("--lcao", "-s", "--orb", dest='filename_lcao', type=str, required = True,
                     help='Required: Filename (including extension) of .lcao or .orb file in the old format')
 
 # Required positional argument
-parser.add_argument("--bfinfo", "-r", "--bf", dest='filename_bfinfo', type=str,
+parser.add_argument("--bfinfo", "-r", "--bf", dest='filename_bfinfo', type=str, required = True,
                     help='Required: Filename (including extension) of .bfinfo file in the old format')
 
 # Required positional argument
-parser.add_argument("--geom", "-g", "--xyz", dest='filename_geom', type=str,
+parser.add_argument("--geom", "-g", "--xyz", dest='filename_geom', type=str, required = True,
                     help='Required: Filename of .geom file in the old format')
 
 args = parser.parse_args()
