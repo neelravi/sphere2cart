@@ -419,6 +419,12 @@ for element in atom_type_symbol:
 # Create a copy of mocoeffs; only the d coeffs will change; rest will be shuffled
 transformed_mocoeffs = np.asarray(mocoeffs)
 
+# Get the list of indices of starting point for each atom
+basis_start_index = np.cumsum(basis_per_atom)
+basis_start_index = np.insert(basis_start_index, 0, 0, axis=0)
+# Ignore the last number from the above list
+
+
 summ = 0; final_list_indices = []
 for index, element in enumerate(atom_type_symbol):
     temporary = []
@@ -461,10 +467,13 @@ for index, element in enumerate(atom_type_symbol):
     # newcoeff('ZZ') = a/CS + b;
 
     # make sure that you loop over all the d coeffs
+    print ("to search in list A", A)
+    print ("basis per atom ", basis_per_atom)
     for num_d in range(dict_shell_counter[element][2]):
-        index_xx = np.where( A == 'XX' + str(num_d))[0][0]
-        index_yy = np.where( A == 'YY' + str(num_d))[0][0]
-        index_zz = np.where( A == 'ZZ' + str(num_d))[0][0]
+        index_xx = np.where( A == 'XX' + str(num_d))[0][0] + basis_start_index[index]
+        index_yy = np.where( A == 'YY' + str(num_d))[0][0] + basis_start_index[index]
+        index_zz = np.where( A == 'ZZ' + str(num_d))[0][0] + basis_start_index[index]
+        print ("index what i want xx,yy,zz", index_xx,index_yy,index_zz)
         for iorb in range(ncoeff):
             a = mocoeffs[iorb][index_xx]
             b = mocoeffs[iorb][index_yy]
@@ -509,11 +518,13 @@ if new_filename_orbitals is not None:
 # debug
 print (old_shell_reprensentation_per_atom[1][0:14])
 print ("tranformed ")
-print (transformed_mocoeffs[0][14:28])
+print ("trans ", transformed_mocoeffs[0][0:14])
 print ("reference ")
-# print ("[0]   0.47782000 -0.11778100  0.00813900 -0.01455200  0.07949400  0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
+print ("[0]   0.47782000 -0.11778100  0.00813900 -0.01455200  0.07949400  0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
+print ("trans", transformed_mocoeffs[0][14:28])
 print ("[1]   0.47782000 -0.11778100 -0.00813900  0.01455200 -0.07949400 -0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
-# print ("[2]   0.30742600 -0.12040800  0.11043800 -0.04292200 -0.03640200  0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
+print ("trans", transformed_mocoeffs[0][28:42])
+print ("[2]   0.30742600 -0.12040800  0.11043800 -0.04292200 -0.03640200  0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
 # print ("[3]   0.30742600 -0.12040800 -0.11043800  0.04292200  0.03640200 -0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
 # print ("[4]   0.06614600  0.00353700  0.00362200 -0.00935700  0.00000000")
 # print ("[5]   0.06614600  0.00353700 -0.00362200  0.00935700  0.00000000")
