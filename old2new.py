@@ -110,10 +110,15 @@ with open(args.filename_bfinfo) as f3:
         if line.startswith('end'):
             continue
 
-    unique_atoms, indices = np.unique(atom_type_symbol, return_index=True)
+    # unique_atoms, indices = np.unique(atom_type_symbol, return_index=True)
+    _, indices = np.unique(atom_type_symbol, return_index=True)
+    unique_atoms = np.array(atom_type_symbol)[np.sort(indices)]
     _, count_each_type_atoms = np.unique(atom_type_symbol, return_counts=True)
+    # unique_atoms = unique_atoms[np.sort(indices)]
     print ("unique elements", unique_atoms)
-    print ("indices ", indices)
+    print ("indices ", np.sort(indices))
+
+
     print ("count each atom type", count_each_type_atoms)
     num_unique_atoms = len(unique_atoms)
 
@@ -313,7 +318,7 @@ if new_filename_bfinfo is not None:
             file.write("qmc_bf_info 1 \n")
 
             # pointers to the basis functions
-            for i in indices:
+            for i in np.sort(indices):
                 count_shells_per_atom = list(Counter(shell_reprensentation_per_atom[i]).values())
                 # Write the number of types of shells for each unique atom
                 for num in count_shells_per_atom:
