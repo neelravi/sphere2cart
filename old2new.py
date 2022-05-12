@@ -1,3 +1,18 @@
+'''
+This script can be used to convert the older lcao and bfinfo files into the
+newer lcao and bfinfo files which have all cartesian AOs. Three files are
+required to run this script:
+1) Geometry file in .xyz format or .geom (older format)
+2) Older bfinfo file
+3) Older lcao file
+
+Author: Ravindra Shinde
+Email : r.l.shinde@utwente.nl
+'''
+
+
+
+
 from os.path import splitext
 import argparse
 import numpy as np
