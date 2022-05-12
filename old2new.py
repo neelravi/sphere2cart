@@ -1,3 +1,4 @@
+from os.path import splitext
 import argparse
 import numpy as np
 np.set_printoptions(threshold=np.inf)
@@ -137,7 +138,8 @@ with open(args.filename_bfinfo) as f3:
     # print ("radial pointers", dict_radial_pointers)
 
 
-
+print (" ")
+print (" ")
 ### Writing part starts here!
 
 ## Get the bfinfo file with cartesian ordering of shell pointers
@@ -309,7 +311,7 @@ for i in range(len(basis_per_atom)):
 
 
 ## Write the new bfinfo file begins here ----------------
-new_filename_bfinfo = "champ_v2_new_cartesian_" + args.filename_bfinfo
+new_filename_bfinfo = "champ_v2_new_cartesian_" + splitext(args.filename_bfinfo)[0] + ".bfinfo"
 if new_filename_bfinfo is not None:
     if isinstance(new_filename_bfinfo, str):
         ## Write down a symmetry file in the new champ v2.0 format
@@ -327,6 +329,8 @@ if new_filename_bfinfo is not None:
                 # Write down zeros for shells that are not present. Total shells supported are S(1) + P(3) + D(6) + F(10) = 20
                 for rem in range(len(count_shells_per_atom), 20):
                     file.write(f"0 ")
+                for rem in range(len(count_shells_per_atom), 35):
+                    file.write(f"0 ")
                 file.write(f"\n")
 
                 # Write the pointers to the basis functions
@@ -338,10 +342,11 @@ if new_filename_bfinfo is not None:
 
     else:
         raise ValueError
+print ("New bfinfo file created   \t {} ".format(new_filename_bfinfo))
 # all the bfinfo file information written to the file
 
 ## Write the new geometry file begins here ----------------
-new_filename_geom = "champ_v2_new_cartesian_" + args.filename_geom + ".xyz"
+new_filename_geom = "champ_v2_new_cartesian_" + splitext(args.filename_geom)[0] + ".xyz"
 if new_filename_geom is not None:
     if isinstance(new_filename_geom, str):
         ## Write down a symmetry file in the new champ v2.0 format
@@ -359,6 +364,7 @@ if new_filename_geom is not None:
     else:
         raise ValueError
 # all the geometry file information written to the file
+print ("New geometry file created   \t {} ".format(new_filename_geom))
 
 
 
@@ -375,8 +381,6 @@ if new_filename_geom is not None:
 # reordered_mo_array = dict_mo["coefficient"][:,champ_ao_ordering]
 
 
-print (" ")
-print (" ")
 # print ("reconstruting the old shell representation first atom")
 old_shell_reprensentation_per_atom = []
 for element in atom_type_symbol:
@@ -503,7 +507,7 @@ for iorb in range(ncoeff):
     transformed_mocoeffs[iorb] = transformed_mocoeffs[iorb][argindex]
 
 # write the transformed molecular coefficients to the new .lcao file
-new_filename_orbitals = "champ_v2_new_cartesian_" + args.filename_lcao + '_orbitals.lcao'
+new_filename_orbitals = "champ_v2_new_cartesian_" + splitext(args.filename_lcao)[0] + '_orbitals.lcao'
 if new_filename_orbitals is not None:
     if isinstance(new_filename_orbitals, str):
         ## Write down an orbitals file in the new champ v2.0 format
@@ -518,6 +522,7 @@ if new_filename_orbitals is not None:
     else:
         raise ValueError
 # all the lcao file information written to the file
+print ("New orbital file created   \t {} ".format(new_filename_orbitals))
 
 print ('{}'.format("All files have been converted successfully"))
 # The end
