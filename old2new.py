@@ -102,7 +102,7 @@ with open(args.filename_geom) as f2:
     else:
         print ("Newer format of geometry file detected")
         dict_atom_type = {}
-        atom_type = []
+        atom_type_symbol = []
         count = 0
         for line_num, line in enumerate(lines):
             if line.startswith('#'):
@@ -115,30 +115,24 @@ with open(args.filename_geom) as f2:
                 print ('Number of atoms             \t {}'.format(natoms))
 
             if ntokens == 4:
-                print ("line and number ", line_num, line)
                 nucleus_coord[count][0] = line.split()[1]
                 nucleus_coord[count][1] = line.split()[2]
                 nucleus_coord[count][2] = line.split()[3]
-                atom_type.append(line.split()[0])
+                atom_type_symbol.append(line.split()[0])
                 count += 1
 
 
-        unique_elements, indices = np.unique(atom_type, return_index=True)
-        unique_atom_type = np.array(atom_type)[indices]
+        unique_elements, indices = np.unique(atom_type_symbol, return_index=True)
+        unique_atom_type = np.array(atom_type_symbol)[indices]
         nctype = len(unique_elements)
-        print ("unique elements are ", unique_elements)
-        print ("atom types are after sort ", atom_type)
 
         # assignment of atom types
         for i in range(len(unique_atom_type)):
             dict_atom_type[i+1] = unique_atom_type[i]
 
-        print ("whats in dict ", dict_atom_type, dict_atom_type.keys() )
-
-        atom_type_symbol = []
-        for i in atom_type:
-            print ("i is ", i)
-            atom_type_symbol.append( list(unique_elements).index(i) + 1 )
+        atom_type = []
+        for i in atom_type_symbol:
+            atom_type.append( list(unique_elements).index(i) + 1 )
 
         print ('Number of atoms             \t {}'.format(natoms))
         print ('Number of types of atoms    \t {}'.format(nctype))
