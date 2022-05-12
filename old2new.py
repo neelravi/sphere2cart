@@ -21,10 +21,10 @@ parser.add_argument("--geom", "-g", "--xyz", dest='filename_geom', type=str, req
 
 args = parser.parse_args()
 
-print("Filenames parsed are :")
-print(" lcao file old   :: ", args.filename_lcao)
-print(" bfinfo file old :: ", args.filename_bfinfo)
-print(" geom file old   :: ", args.filename_geom)
+print ("Filenames parsed are :")
+print (' lcao file old   ::         \t {}'.format(args.filename_lcao))
+print (' bfinfo file old ::         \t {}'.format(args.filename_bfinfo))
+print (' geom file old   ::         \t {}'.format(args.filename_geom))
 
 
 ### Read the lcao file first
@@ -73,8 +73,9 @@ with open(args.filename_geom) as f2:
         if line.startswith('geometry'):
             coord_block_start = line_num + 1
 
-    print ("nstoms ntypes and other data")
-    print (natoms, nctype, dict_atom_type)
+    print ('Number of atoms             \t {}'.format(natoms))
+    print ('Number of types of atoms    \t {}'.format(nctype))
+    print ('Dictionary of atom types    \t {}'.format(dict_atom_type))
 
     nucleus_coord = np.zeros((natoms,3),dtype=float)
     for i in range(coord_block_start, coord_block_start+natoms):
@@ -83,12 +84,13 @@ with open(args.filename_geom) as f2:
         nucleus_coord[i-coord_block_start][2] = lines[i].split()[2]
         atom_type.append(lines[i].split()[3])
 
-    print (atom_type)
     atom_type_symbol = []
     for i in atom_type:
         atom_type_symbol.append(dict_atom_type[int(i)])
 
-    print ("atom symbols ", atom_type_symbol)
+    print ('Atom Symbols                \t {}'.format(atom_type_symbol))
+    print ('Atom types                  \t {}'.format(atom_type))
+
 
 ## utility functions
 def get_key(dictionary, val):
@@ -115,25 +117,24 @@ with open(args.filename_bfinfo) as f3:
     unique_atoms = np.array(atom_type_symbol)[np.sort(indices)]
     _, count_each_type_atoms = np.unique(atom_type_symbol, return_counts=True)
     # unique_atoms = unique_atoms[np.sort(indices)]
-    print ("unique elements", unique_atoms)
-    print ("indices ", np.sort(indices))
+    print ('unique elements             \t {}'.format(unique_atoms))
+    print ('indices                     \t {}'.format(np.sort(indices)))
 
-
-    print ("count each atom type", count_each_type_atoms)
+    print ('count each atom type        \t {}'.format(count_each_type_atoms))
     num_unique_atoms = len(unique_atoms)
 
     dict_num_per_shell = {} #only the odd numbered rows of data
     for i in range(coord_block_start, coord_block_start+2*num_unique_atoms,2):
         dict_num_per_shell[i] = lines[i].split()
 
-    print ("dict num per shell", dict_num_per_shell)
+    # print ("dict num per shell", dict_num_per_shell)
 
 
     dict_radial_pointers = {} #only the even numbered rows of data
     for i in range(coord_block_start+1, coord_block_start+2*num_unique_atoms,2):
         dict_radial_pointers[i] = lines[i].split()
 
-    print ("radial pointers", dict_radial_pointers)
+    # print ("radial pointers", dict_radial_pointers)
 
 
 
@@ -172,8 +173,8 @@ for vals in dict_radial_pointers.values():
     pointers = [int(i) for i in vals]
     sorted_pointers = sorted(pointers)
     unique_shells, shell_count = np.unique(sorted_pointers, return_counts=True)
-    print ("unique inds   ",   shell_count)
-    print ("sorted pointers   ", sorted_pointers)
+    # print ("unique inds   ",   shell_count)
+    # print ("sorted pointers   ", sorted_pointers)
 
     # Counter of how many s,p,d,f shells for the given atom
     counter = np.zeros(4, dtype=int)
@@ -182,7 +183,7 @@ for vals in dict_radial_pointers.values():
         counter[i] = temp_counter[i]
 
     dict_shell_counter[unique_atoms[index_unique_atom]] = list(counter)
-    print ("dict shell counter", dict_shell_counter)
+    # print ("dict shell counter", dict_shell_counter)
 
 
     # get the length of individual sublist and stack if length matched with earlier sublist
@@ -193,7 +194,7 @@ for vals in dict_radial_pointers.values():
 
 
     index_unique_atom += 1
-print ("basis shell ang mom ", basis_shell_ang_mom_unique)
+# print ("basis shell ang mom ", basis_shell_ang_mom_unique)
 
 ## Come outside the unique atoms loop
 
@@ -202,8 +203,8 @@ for i in atom_type_symbol:
     basis_shell_ang_mom.append(basis_shell_ang_mom_unique[i])
     shell_counter_all_atoms.append(dict_shell_counter[i])
 
-print ("full list ang mom ", basis_shell_ang_mom)
-print ("full shell counter list ", shell_counter_all_atoms)
+# print ("full list ang mom ", basis_shell_ang_mom)
+# print ("full shell counter list ", shell_counter_all_atoms)
 
 # This part is for reshuffling to make the AO basis in the CHAMP's new own ordering
 index_dict = {}; shell_representation = {}; bf_representation = {}
@@ -276,10 +277,10 @@ for atom_index in range(len(atom_type_symbol)):
         bfcounter += 1
     basis_per_atom.append(basis_per_atom_counter)
 
-print ("champ ao ordering: ", champ_ao_ordering)
-print ("new_shell_representation: ", new_shell_representation)
-print ("old_shell_representation: ", shell_representation.values())
-print ("basis per atom: ", basis_per_atom)
+# print ("champ ao ordering: ", champ_ao_ordering)
+# print ("new_shell_representation: ", new_shell_representation)
+# print ("old_shell_representation: ", shell_representation.values())
+# print ("basis per atom: ", basis_per_atom)
 
 
 # The next two arrays are needed for bfinfo file
@@ -288,7 +289,7 @@ reordered_bf_array_values = list(reordered_bf_array.values())
 shell_representation_values = list(shell_representation.values())
 distinct_shell_representation_values = new_shell_representation
 
-print( "bf representation p d f clubbed together  ", reordered_bf_array_values)
+# print( "bf representation p d f clubbed together  ", reordered_bf_array_values)
 
 accumumulated_basis_per_atom = np.cumsum(basis_per_atom)
 
@@ -303,8 +304,8 @@ for i in range(len(basis_per_atom)):
     distinct_shell_reprensentation_per_atom.append(distinct_shell_representation_values[start_index:end_index])
     start_index = end_index
 
-print ("basis pointer per atom ", basis_pointer_per_atom)
-print ("shell prepresentation per atom ", shell_reprensentation_per_atom)
+# print ("basis pointer per atom ", basis_pointer_per_atom)
+# print ("shell prepresentation per atom ", shell_reprensentation_per_atom)
 
 
 ## Write the new bfinfo file begins here ----------------
@@ -376,7 +377,7 @@ if new_filename_geom is not None:
 
 print (" ")
 print (" ")
-print ("reconstruting the old shell representation first atom")
+# print ("reconstruting the old shell representation first atom")
 old_shell_reprensentation_per_atom = []
 for element in atom_type_symbol:
     temp_old_shell = []
@@ -448,8 +449,8 @@ for index, element in enumerate(atom_type_symbol):
     indexed_A = [x+str(next(iters[x])) if x in iters else x for x in A]
     indexed_A =np.array(indexed_A)
 
-    print ("indexed A ", indexed_A)
-    print ("indexed B ", indexed_B)
+    # print ("indexed A ", indexed_A)
+    # print ("indexed B ", indexed_B)
 
     xsorted = np.argsort(indexed_B)
     res = xsorted[np.searchsorted(indexed_B[xsorted], indexed_A)]
@@ -472,13 +473,13 @@ for index, element in enumerate(atom_type_symbol):
     # newcoeff('ZZ') = a/CS + b;
 
     # make sure that you loop over all the d coeffs
-    print ("to search in list A", A)
-    print ("basis per atom ", basis_per_atom)
+    # print ("to search in list A", A)
+    # print ("basis per atom ", basis_per_atom)
     for num_d in range(dict_shell_counter[element][2]):
         index_xx = np.where( A == 'XX' + str(num_d))[0][0] + basis_start_index[index]
         index_yy = np.where( A == 'YY' + str(num_d))[0][0] + basis_start_index[index]
         index_zz = np.where( A == 'ZZ' + str(num_d))[0][0] + basis_start_index[index]
-        print ("index what i want xx,yy,zz", index_xx,index_yy,index_zz)
+        # print ("index what i want xx,yy,zz", index_xx,index_yy,index_zz)
         for iorb in range(ncoeff):
             a = mocoeffs[iorb][index_xx]
             b = mocoeffs[iorb][index_yy]
@@ -495,7 +496,7 @@ flat_list = [item for sublist in old_shell_reprensentation_per_atom for item in 
 final_list_indices = np.asarray(final_list_indices)
 #Convert to numpy int array
 final_list_indices = final_list_indices.astype(int)
-print ("list of indices final ", final_list_indices)
+# print ("list of indices final ", final_list_indices)
 ## Rearrange the transofrmed mocoeffs array with index array from final_list_indices
 argindex = final_list_indices.argsort()
 for iorb in range(ncoeff):
@@ -518,22 +519,5 @@ if new_filename_orbitals is not None:
         raise ValueError
 # all the lcao file information written to the file
 
+print ('{}'.format("All files have been converted successfully"))
 # The end
-
-# debug
-print (old_shell_reprensentation_per_atom[1][0:14])
-print ("tranformed ")
-print ("trans ", transformed_mocoeffs[0][0:14])
-print ("reference ")
-print ("[0]   0.47782000 -0.11778100  0.00813900 -0.01455200  0.07949400  0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
-print ("trans", transformed_mocoeffs[0][14:28])
-print ("[1]   0.47782000 -0.11778100 -0.00813900  0.01455200 -0.07949400 -0.00136800 0.00000000 0.00000000 0.02506200  0.00125400 0.00000000 0.00655300 0.00000000 -0.00327800 ")
-print ("trans", transformed_mocoeffs[0][28:42])
-print ("[2]   0.30742600 -0.12040800  0.11043800 -0.04292200 -0.03640200  0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
-# print ("[3]   0.30742600 -0.12040800 -0.11043800  0.04292200  0.03640200 -0.01019800 0.00000000 0.00000000 0.01588400 -0.00473300 0.00000000 0.00079800 0.00000000 -0.00011400 ")
-# print ("[4]   0.06614600  0.00353700  0.00362200 -0.00935700  0.00000000")
-# print ("[5]   0.06614600  0.00353700 -0.00362200  0.00935700  0.00000000")
-# print ("[6]   0.09774900  0.00206300 -0.00016200  0.01276300  0.00000000")
-# print ("[7]   0.09774900  0.00206300  0.00016200 -0.01276300  0.00000000")
-# print ("[8]   0.05603700  0.00745100  0.00848200  0.00205200  0.00000000")
-# print ("[9]   0.05603700  0.00745100 -0.00848200 -0.00205200  0.00000000")
