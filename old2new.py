@@ -57,40 +57,95 @@ with open(args.filename_lcao) as f1:
 with open(args.filename_geom) as f2:
     lines = f2.readlines()
 
-    dict_atom_type = {}
-    atom_type = []
-    for line_num, line in enumerate(lines):
-        # Skip the comments
-        if line.startswith('&atoms'):
-            nctype = int(line.split()[2])
-            natoms = int(line.split()[4])
-            continue
-        if line.startswith('&atom_types'):
-            ntokens = len(line.split()) - 1
-            for i in range(0,ntokens,2):
-                dict_atom_type[int(line.split()[i+1])] = line.split()[i+2]
-            continue
+    if any("&atoms" in s for s in lines):
+        print ("")
+        print ("Older format of Geometry file detected")
+        dict_atom_type = {}
+        atom_type = []
+        for line_num, line in enumerate(lines):
+            # print ("debug print  all lines ", line_num, line)
+            # Skip the comments
+            if line.startswith('#'):
+                continue
 
-        if line.startswith('geometry'):
-            coord_block_start = line_num + 1
+            if line.startswith('&atoms'):
+                nctype = int(line.split()[2])
+                natoms = int(line.split()[4])
+                continue
+            if line.startswith('&atom_types'):
+                ntokens = len(line.split()) - 1
+                for i in range(0,ntokens,2):
+                    dict_atom_type[int(line.split()[i+1])] = line.split()[i+2]
+                continue
 
-    print ('Number of atoms             \t {}'.format(natoms))
-    print ('Number of types of atoms    \t {}'.format(nctype))
-    print ('Dictionary of atom types    \t {}'.format(dict_atom_type))
+            if line.startswith('geometry'):
+                coord_block_start = line_num + 1
 
-    nucleus_coord = np.zeros((natoms,3),dtype=float)
-    for i in range(coord_block_start, coord_block_start+natoms):
-        nucleus_coord[i-coord_block_start][0] = lines[i].split()[0]
-        nucleus_coord[i-coord_block_start][1] = lines[i].split()[1]
-        nucleus_coord[i-coord_block_start][2] = lines[i].split()[2]
-        atom_type.append(lines[i].split()[3])
+        print ('Number of atoms             \t {}'.format(natoms))
+        print ('Number of types of atoms    \t {}'.format(nctype))
+        print ('Dictionary of atom types    \t {}'.format(dict_atom_type))
 
-    atom_type_symbol = []
-    for i in atom_type:
-        atom_type_symbol.append(dict_atom_type[int(i)])
+        nucleus_coord = np.zeros((natoms,3),dtype=float)
+        for i in range(coord_block_start, coord_block_start+natoms):
+            nucleus_coord[i-coord_block_start][0] = lines[i].split()[0]
+            nucleus_coord[i-coord_block_start][1] = lines[i].split()[1]
+            nucleus_coord[i-coord_block_start][2] = lines[i].split()[2]
+            atom_type.append(lines[i].split()[3])
 
-    print ('Atom Symbols                \t {}'.format(atom_type_symbol))
-    print ('Atom types                  \t {}'.format(atom_type))
+        atom_type_symbol = []
+        for i in atom_type:
+            atom_type_symbol.append(dict_atom_type[int(i)])
+
+        print ('Atom Symbols                \t {}'.format(atom_type_symbol))
+        print ('Atom types                  \t {}'.format(atom_type))
+
+    else:
+        print ("Newer format of geometry file detected")
+        dict_atom_type = {}
+        atom_type = []
+        count = 0
+        for line_num, line in enumerate(lines):
+            if line.startswith('#'):
+                continue
+            # Read the first line
+            ntokens = len(line.split())
+            if ntokens == 1:
+                natoms = int(line.split()[0])
+                nucleus_coord = np.zeros((natoms,3),dtype=float)
+                print ('Number of atoms             \t {}'.format(natoms))
+
+            if ntokens == 4:
+                print ("line and number ", line_num, line)
+                nucleus_coord[count][0] = line.split()[1]
+                nucleus_coord[count][1] = line.split()[2]
+                nucleus_coord[count][2] = line.split()[3]
+                atom_type.append(line.split()[0])
+                count += 1
+
+
+        unique_elements, indices = np.unique(atom_type, return_index=True)
+        unique_atom_type = np.array(atom_type)[indices]
+        nctype = len(unique_elements)
+        print ("unique elements are ", unique_elements)
+        print ("atom types are after sort ", atom_type)
+
+        # assignment of atom types
+        for i in range(len(unique_atom_type)):
+            dict_atom_type[i+1] = unique_atom_type[i]
+
+        print ("whats in dict ", dict_atom_type, dict_atom_type.keys() )
+
+        atom_type_symbol = []
+        for i in atom_type:
+            print ("i is ", i)
+            atom_type_symbol.append( list(unique_elements).index(i) + 1 )
+
+        print ('Number of atoms             \t {}'.format(natoms))
+        print ('Number of types of atoms    \t {}'.format(nctype))
+        print ('Dictionary of atom types    \t {}'.format(dict_atom_type))
+
+        print ('Atom Symbols                \t {}'.format(atom_type_symbol))
+        print ('Atom types                  \t {}'.format(atom_type))
 
 
 ## utility functions
